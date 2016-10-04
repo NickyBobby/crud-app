@@ -3,10 +3,6 @@ const bodyParser = require('body-parser')
 const app = express();
 const MongoClient = require('mongodb').MongoClient
 
-app.use(bodyParser.json())
-app.use(express.static('public'))
-app.set('view engine', 'ejs')
-
 var db;
 
 MongoClient.connect('mongodb://nickynonaps:Gold420420@ds049456.mlab.com:49456/star-wars-quotes', (err, database) => {
@@ -16,6 +12,12 @@ MongoClient.connect('mongodb://nickynonaps:Gold420420@ds049456.mlab.com:49456/st
     console.log('listening on 3000')
   })
 })
+
+app.set('view engine', 'ejs')
+app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.json())
+app.use(express.static('public'))
+
 
   app.get('/', (req, res) => {
     db.collection('quotes').find().toArray((err, result) => {
@@ -27,7 +29,6 @@ MongoClient.connect('mongodb://nickynonaps:Gold420420@ds049456.mlab.com:49456/st
   app.post('/quotes', (req, res) => {
     db.collection('quotes').save(req.body, (err, result) => {
       if (err) return console.log(err)
-
       console.log('saved to database')
       res.redirect('/')
     })
@@ -46,5 +47,12 @@ MongoClient.connect('mongodb://nickynonaps:Gold420420@ds049456.mlab.com:49456/st
     }, (err, result) => {
       if (err) return res.send(err)
       res.send(result)
+    })
+  })
+
+  app.delete('/quotes', (req, res) => {
+    db.collection('quotes').findOneAndDelete({name: req.body.name}, (err, result) => {
+      if (err) return res.send(500, err)
+      res.send('A Darth Vader quote got deleted')
     })
   })
